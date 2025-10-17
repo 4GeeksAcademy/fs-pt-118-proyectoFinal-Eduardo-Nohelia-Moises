@@ -27,7 +27,7 @@ class User(db.Model):
             "email": self.email,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "valoration":self.valoration,
-            "profile":self.serialize(),
+            "profile": self.profile.serialize() if self.profile else None,
             "favorites":[f.serialize() for f in self.favorites] if self.favorites else None,
             "movie_view":[m.serialize() for m in self.movie_view] if self.movie_view else None,
             "reviews":[r.serialize() for r in self.reviews] if self.reviews else None,
@@ -61,22 +61,22 @@ class Profile(db.Model):
     
 
 class Movies(db.Model):
-    __tablename__="movies"
-    id: Mapped[int]= mapped_column(primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow)
-    title:Mapped[str]= mapped_column(String(250),nullable=False)
-    description: Mapped[str]=mapped_column(String(500))
-    year:Mapped[int]=mapped_column(Integer)
-    actors:Mapped[str]=mapped_column(String(250))
-    genere:Mapped[str]=mapped_column(String(250))
-    duration:Mapped[int]=mapped_column(Integer)
-    valoration:Mapped[float]= mapped_column(float,default=0)
-    total_valoration:Mapped[int]=mapped_column(Integer,default=0)
-    url_streaming:Mapped[str]=mapped_column(String(500))
-    favorites_by:Mapped[list["Favorites"]]= relationship(back_populates="movies",uselist=True)
-    movie_view_by:Mapped[list["MoviesViews"]] = relationship(back_populates="movies", uselist=True)
-    reviews:Mapped[list["Reviews"]]= relationship(back_populates="movies",uselist=True)
+    __tablename__ = "movies"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    title: Mapped[str] = mapped_column(String(250), nullable=False)
+    description: Mapped[str] = mapped_column(String(500))
+    year: Mapped[int] = mapped_column(Integer)
+    actors: Mapped[str] = mapped_column(String(250))
+    genere: Mapped[str] = mapped_column(String(250))
+    duration: Mapped[int] = mapped_column(Integer)
+    valoration: Mapped[float] = mapped_column(Float, default=0)
+    total_valoration: Mapped[int] = mapped_column(Integer, default=0)
+    url_streaming: Mapped[str] = mapped_column(String(500))
+    favorites_by: Mapped[list["Favorites"]] = relationship(back_populates="movies", uselist=True)
+    movie_view_by: Mapped[list["MoviesViews"]] = relationship(back_populates="movie", uselist=True)
+    reviews: Mapped[list["Reviews"]] = relationship(back_populates="movies", uselist=True)
+
 
     def serialize(self):
         return{
@@ -120,16 +120,15 @@ class Favorites(db.Model):
                 "year":self.movies.year
             }
         }
-    
+ 
 class MoviesViews(db.Model):
-    __tablename__="movies_views"
-    id:Mapped[int]= mapped_column(primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow)
-    user_id:Mapped[int]= mapped_column(ForeignKey("user.id"))
-    user:Mapped["User"] = relationship(back_populates="movie_view")
-    movies_id:Mapped[int]=mapped_column(ForeignKey("movies.id"))
-    movies:Mapped["Movies"]=relationship(back_populates="movie_view_by")
+    __tablename__ = "movies_views"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user: Mapped["User"] = relationship(back_populates="movie_view")
+    movie_id: Mapped[int] = mapped_column(ForeignKey("movies.id"))
+    movie: Mapped["Movies"] = relationship(back_populates="movie_view_by")
 
     def serialize(self):
         return{
@@ -139,9 +138,9 @@ class MoviesViews(db.Model):
                 "id":self.user.id,
                 "email":self.user.email
             },
-            "movies":{
-                "id":self.movies.id,
-                "title":self.movies.title
+            "movie":{
+                "id":self.movie.id,
+                "title":self.movie.title
             }
         }
 
@@ -151,7 +150,7 @@ class Reviews(db.Model):
     id:Mapped[int]=mapped_column(primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow)
-    title:Mapped[str]=mapped_column(String(20),nullable=False)
+    title:Mapped[str]=mapped_column(String(250),nullable=False)
     body:Mapped[str]=mapped_column(Text())
     valoration:Mapped[int]= mapped_column(Integer,default=0)
     user_id:Mapped[int]=mapped_column(ForeignKey("user.id"))
@@ -173,7 +172,6 @@ class Reviews(db.Model):
             "movies":{
                 "id":self.movies.id,
                 "title":self.movies.title
-                #recuerda preguntar si tengo que serializar la valoracion
             }
 
         }
@@ -183,7 +181,7 @@ class ReviewsMovieVerse(db.Model):
     id:Mapped[int]=mapped_column(primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow)
-    title:Mapped[str]=mapped_column(String(20),nullable=False)
+    title:Mapped[str]=mapped_column(String(200),nullable=False)
     body:Mapped[str]=mapped_column(Text(),nullable=False)
     valoration:Mapped[int]=mapped_column(Integer,default=0)
     user_id:Mapped[int]=mapped_column(ForeignKey("user.id"))
