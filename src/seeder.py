@@ -28,24 +28,7 @@ def seed_data():
         db.session.add(profile)
     db.session.commit()
 
-    # === MOVIES ===
-    genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi"]
-    movies = []
-    for i in range(1, 9):
-        movie = Movies(
-            title=f"Movie {i}",
-            description=f"This is the description for Movie {i}.",
-            year=random.randint(1980, 2025),
-            actors=f"Actor A{i}, Actor B{i}, Actor C{i}",
-            genere=random.choice(genres),
-            duration=random.randint(80, 180),
-            valoration=round(random.uniform(0, 10), 1),
-            total_valoration=random.randint(0, 500),
-            url_streaming=f"https://streaming.example.com/movie{i}"
-        )
-        db.session.add(movie)
-        movies.append(movie)
-    db.session.commit()
+   
 
     # === FAVORITES ===
     for user in users:
