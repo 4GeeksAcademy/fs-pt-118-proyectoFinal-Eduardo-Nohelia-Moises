@@ -6,7 +6,8 @@ from api.models import db, User,Profile,MoviesViews,Favorites,Reviews,ReviewsMov
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from sqlalchemy import select
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 api = Blueprint('api', __name__)
@@ -22,55 +23,67 @@ def register():
     try:
         body= request.json
 
+        if not body['password']:
+            return jsonify({"error":"password is requiered"})
+        
+        raw_password = body["password"]
+        
+        hashed_password= generate_password_hash(raw_password)
+
         new_user = User(
             email = body['email'],
-            password = body['password']
+            password = hashed_password
+        )
+        db.session.add(new_user)
+        db.session.flush()
+       
+
+        new_profile = Profile(
+            username = body['email'],
+            user_id = new_user.id
+            
         )
 
-        db.session.add(new_user)
+        db.session.add(new_profile)
         db.session.commit()
+        token = create_access_token(identity=str(new_user.id))
 
-        return jsonify({'success': True, 'data': 'user register, login now'}),200
+        return jsonify({'success': True, 'data': new_user.serialize(),"profile": new_profile.serialize(),"token":token}),200
     
     except Exception as error:
-        return jsonify({'success': False , 'error': error}),500
+        return jsonify({'success': False , 'error': str(error)}),500
     
 
-
+#-------------------endpoint login user---------------------------------------------------
 @api.route('/login',methods=['POST'])
 def login():
     try:
         body= request.json
-
-        query= select(User).where(User.email == body['email'])
+        query=select(User)
         user = db.session.execute(query).scalar_one()
+
 
         if not user:
             return jsonify({'success': False, 'user': 'no user found'}),404
         
-        if user.password != body['password']:
-            return jsonify({'success': False, 'user': 'email/password wrong'}),400
+        if not body['password']:
+            return jsonify({"error":"password is requiered"})
+        
+        raw_password = body["password"]
+        if not check_password_hash(user.password , raw_password):
+            return jsonify({"error": "invalid password"})
         
         token = create_access_token(identity=str(user.id))
 
         
-        return jsonify({'success': True, 'token': token}),200
+        return jsonify({'success': True, 'data': user.serialize(),"token": token}),200
     
     except Exception as error:
         return jsonify({'success': False , 'error': error}),500
 
 
 
-
-
-
-
-
-
-
-
-
-
+#----------------------endpoint traer todos los usuarios-------------------------------------------
 
 
 @api.route('/user', methods=['GET'])
@@ -110,10 +123,12 @@ def get_one_user(id):
 #-------endpoint eliminar usuario----------------------------
 
 @api.route('/user/<int:id>',methods=['DELETE'])
-def delete_user(id):
+@jwt_required()
+def delete_user():
     try:
 
         user = db.session.get(User,id)
+        id = get_jwt_identity()
 
         if not user:
             return jsonify({'success': False, 'user':'No user'}),200
@@ -182,10 +197,12 @@ def get_one_profile(id):
 
 #------------endpoint modificar perfil----------------------------------------
 
-@api.route('/profile/<int:id>', methods=['PUT'])
-def update_profile(id):
+@api.route('/profile', methods=['PUT'])
+@jwt_required()
+def update_profile():
     try:
         body = request.json
+        id = get_jwt_identity()
 
         profile = db.session.get(Profile,id)
         if not profile:
@@ -246,13 +263,15 @@ def get_one_favorites(id):
 #-----------------endpoint crear un favorito-----------------------------------------------
 
 @api.route('/favorites', methods=['POST'])
+@jwt_required()
 def create_favorites():
     try:
         body = request.json
+        id = get_jwt_identity()
 
     
         new_favorites= Favorites(
-            user_id=body['user_id'],
+            user_id= id,
             tmdb_id=body['tmdb_id'],
         )
         db.session.add(new_favorites)
@@ -267,9 +286,11 @@ def create_favorites():
 
 #---------------endpoint eliminar favorito----------------------------------------
 
-@api.route('/favorites/<int:id>', methods=['DELETE'])
-def delete_favorites(id):
+@api.route('/favorites', methods=['DELETE'])
+@jwt_required()
+def delete_favorites():
     try:
+        id = get_jwt_identity()
        
         favorites= db.session.get(Favorites,id)
 
@@ -327,16 +348,18 @@ def get_movies_reviews(tmdb_id):
 #---------------endpoints para crear reseñas de peliculas---------------------------------
 
 @api.route('/reviews', methods=['POST'])
+@jwt_required()
 def create_reviews():
     try:
         body = request.json
+        id = get_jwt_identity()
 
     
         reviews= Reviews(
             title=body['title'],
             body=body['body'],
             valoration=body['valoration',0],
-            user_id=body['user_id'],
+            user_id= id,
             tmdb_id=body['tmdb_id']
             
         )
@@ -352,10 +375,12 @@ def create_reviews():
 
 #---------------endpoints para modificar reseñas de peliculas-------------------------------------
 
-@api.route('/reviews/<int:id>', methods=['PUT'])
-def update_reviews(id):
+@api.route('/reviews', methods=['PUT'])
+@jwt_required()
+def update_reviews():
     try:
         body = request.json
+        id = get_jwt_identity()
 
         reviews = db.session.get(Reviews,id)
         if not reviews:
@@ -376,9 +401,11 @@ def update_reviews(id):
     
 #---------------------endpoints para eliminar reseñas------------------------------------------------
 
-@api.route('/reviews/<int:id>', methods=['DELETE'])
-def delete_reviews(id):
+@api.route('/reviews', methods=['DELETE'])
+@jwt_required()
+def delete_reviews():
     try:
+        id = get_jwt_identity()
        
         reviews= db.session.get(Reviews,id)
 
@@ -420,16 +447,18 @@ def get_all_reviews_movie_verse():
 
 
 @api.route('/movieverse', methods=['POST'])
+@jwt_required()
 def create_reviews_movieverse():
     try:
         body = request.json
+        id = get_jwt_identity()
 
     
         reviews_movie_verse= ReviewsMovieVerse(
             title=body['title'],
             body=body['body'],
             valoration=body['valoration',0],
-            user_id=body['user_id']
+            user_id= id
         )
         db.session.add(reviews_movie_verse)
         db.session.commit()
@@ -445,10 +474,12 @@ def create_reviews_movieverse():
 
 
 
-@api.route('/movieverse/<int:id>', methods=['PUT'])
-def update_reviews_movieverse(id):
+@api.route('/movieverse', methods=['PUT'])
+@jwt_required()
+def update_reviews_movieverse():
     try:
         body = request.json
+        id = get_jwt_identity()
 
         reviews_movie_verse = db.session.get(ReviewsMovieVerse,id)
         if not reviews_movie_verse:
@@ -472,9 +503,11 @@ def update_reviews_movieverse(id):
 #----------------endpoint para eliminar reseñas movieverse---------------------------------------------
 
 
-@api.route('/movieverse/<int:id>', methods=['DELETE'])
-def delete_reviews_movieverse(id):
+@api.route('/movieverse', methods=['DELETE'])
+@jwt_required()
+def delete_reviews_movieverse():
     try:
+        id = get_jwt_identity()
        
         reviews_movie_verse= db.session.get(ReviewsMovieVerse,id)
 
@@ -552,13 +585,15 @@ def get_one_moviesviews_by_title(title):
 
 
 @api.route('/moviesviews', methods=['POST'])
+@jwt_required()
 def create_moviesviews():
     try:
         body = request.json
+        id = get_jwt_identity()
 
     
         movies_views= MoviesViews(
-            user_id=body['user_id'],
+            user_id= id,
             tmdb_id=body['tmdb_id']
         )
         db.session.add(movies_views)
@@ -575,11 +610,14 @@ def create_moviesviews():
 #------------------endpoint para eliminar peliculas vistas---------------------------------------
 
 
-@api.route('/moviesviews/<int:id>', methods=['DELETE'])
+@api.route('/moviesviews', methods=['DELETE'])
+@jwt_required()
 def delete_moviesviews(id):
     try:
+        id = get_jwt_identity()
        
         movies_views= db.session.get(MoviesViews,id)
+        
 
         if not movies_views:
             return jsonify({'success':False, 'movies views':'No movies views found'}),200
