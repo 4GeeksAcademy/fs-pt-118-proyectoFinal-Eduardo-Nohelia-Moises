@@ -1,11 +1,9 @@
 import { Link } from "react-router-dom";
-import { Navbar } from "../components/Navbar/Navbar";
-import { Footer } from "../components/Footer";
 import "./Landing.css";
 
 export const Landing = () => {
   return (
-    <div classname="landing">
+    <div className="landing">
 
       <section className="landing-hero bg-light py-5">
         <div className="container">
@@ -17,11 +15,14 @@ export const Landing = () => {
               </p>
               <div className="d-flex gap-2">
                 <Link to="/peliculas" className="btn btn-primary btn-lg">Ver Películas</Link>
-                <Link to="/registro" className="btn btn-outline-primary btn-lg">Registrarse</Link>
+                <Link to="/register" className="btn btn-outline-primary btn-lg">Registrarse</Link>
+                <button type="button" className="btn btn-link ms-2" onClick={() => document.documentElement.classList.toggle('theme-dark')}>
+                  Cambiar tema
+                </button>
               </div>
             </div>
             <div className="col-md-5 text-center mt-4 mt-md-0">
-              <div className="p-4 border rounded bg-white shadow-sm">
+              <div className="login-card p-4 border rounded bg-white shadow-sm">
                 <h5 className="mb-2">¿Ya tienes cuenta?</h5>
                 <Link to="/login" className="btn btn-dark">Iniciar Sesión</Link>
                 <Link to="/profile" className="btn btn-primary">Ver Perfil (demo)</Link>
@@ -53,6 +54,6 @@ export const Landing = () => {
           </div>
         </div>
       </section>
-    </div>  
+    </div>
   );
 };
