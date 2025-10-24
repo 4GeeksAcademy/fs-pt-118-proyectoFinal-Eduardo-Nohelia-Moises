@@ -1,16 +1,17 @@
 import { Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar/Navbar";
 import { Footer } from "../components/Footer";
+import "./Landing.css";
 
 export const Landing = () => {
   return (
-    <div>
+    <div classname="landing">
 
-      <section className="bg-light py-5">
+      <section className="landing-hero bg-light py-5">
         <div className="container">
           <div className="row align-items-center">
             <div className="col-md-7">
-              <h1 className="display-4 mb-3">Bienvenido a MovieApp</h1>
+              <h1 className="display-4 mb-3">Bienvenido a MovieVerse</h1>
               <p className="lead text-muted mb-4">
                 Descubre, guarda y disfruta de tus películas favoritas.
               </p>
@@ -31,7 +32,7 @@ export const Landing = () => {
       </section>
 
 
-      <section className="py-5">
+      <section className="landing-features py-5">
         <div className="container">
           <div className="row text-center">
             <div className="col-md-4 mb-4">
@@ -52,6 +53,6 @@ export const Landing = () => {
           </div>
         </div>
       </section>
-    </div>
+    </div>  
   );
 };

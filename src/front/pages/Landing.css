@@ -1,0 +1,46 @@
+/* Estilos Landingpage*/
+
+.landing {
+    background: linear-gradient(180deg, #100e1a 0%, #3322b9 33%, #3322b9 66%, #100e1a 100%);
+}
+
+.landing-hero h1 {
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+
+.landing-hero .lead{
+    color:#6c5eb4
+}
+
+.login-card {
+    max-width: 380pc;
+    margin-inline: auto;
+}
+
+.login-card .btn + .btn{
+    margin-left: .5rem;
+}
+
+.landing-features i {
+    transition: transform .2s ease, opacity .2s ease;
+}
+
+.landing-features .col-md-4:hover i{
+    transform: scale(1.08);
+    opacity: 0.9;
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+    .landing-hero h1 {
+        font-size: 2rem;
+    }
+    .landing-hero .lead {
+        font-size: 1rem;
+    }
+    .login-card {
+        max-width: 100%;
+    }
+}
